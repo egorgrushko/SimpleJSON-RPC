@@ -61,3 +61,7 @@ $fooObject->data[1] = 5; // You can change properties before or between processi
 
 echo $server->process($request); // Execute the JSONRPC string processing. Returns result of processing
 ```
+
+## License
+
+The MIT License (MIT). Please see License File (LICENSE.md) for more information.
