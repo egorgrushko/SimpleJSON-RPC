@@ -2,26 +2,27 @@
 
 class SimpleJSONRPCServer
 {
-    const PARSE_ERROR         = [
+    private static $PARSE_ERROR      = [
         'code' => -32700,
         'message' => 'Parse error'
     ];
-    const INVALID_REQUEST     = [
+    private static $INVALID_REQUEST  = [
         'code' => -32600,
         'message' => 'Invalid Request'
     ];
-    const METHOD_NOT_FOUND    = [
+    private static $METHOD_NOT_FOUND = [
         'code' => -32601,
         'message' => 'Method not found'
     ];
-    const INVALID_PARAMS      = [
+    private static $INVALID_PARAMS   = [
         'code' => -32602,
         'message' => 'Invalid params'
     ];
-    const INTERNAL_ERROR      = [
+    private static $INTERNAL_ERROR   = [
         'code' => -32603,
         'message' => 'Internal error'
     ];
+
     const CONTENT_TYPE_HEADER = 'Content-Type: application/json';
     const JSON_RPC_VERSION    = '2.0';
 
@@ -129,13 +130,13 @@ class SimpleJSONRPCServer
     private function processRequestObject($request)
     {
         if (!$this->checkRequestObject($request)) {
-            return $this->getErrorResponseObject(self::INVALID_REQUEST);
+            return $this->getErrorResponseObject(self::$INVALID_REQUEST);
         }
 
         $notification = !isset($request->id);
 
         if (!$this->reflectionRPCObject->hasMethod($request->method)) {
-            return $notification ? null : $this->getErrorResponseObject(self::METHOD_NOT_FOUND,
+            return $notification ? null : $this->getErrorResponseObject(self::$METHOD_NOT_FOUND,
                     $request->id);
         }
 
@@ -143,7 +144,7 @@ class SimpleJSONRPCServer
 
         if (!$method->isPublic() || $method->isConstructor() || $method->isDestructor()
             || $method->isAbstract()) {
-            return $notification ? null : $this->getErrorResponseObject(self::METHOD_NOT_FOUND,
+            return $notification ? null : $this->getErrorResponseObject(self::$METHOD_NOT_FOUND,
                     $request->id);
         }
 
@@ -154,14 +155,14 @@ class SimpleJSONRPCServer
         $params = $this->checkParams($method, $request->params);
 
         if ($params === false) {
-            return $notification ? null : $this->getErrorResponseObject(self::INVALID_PARAMS,
+            return $notification ? null : $this->getErrorResponseObject(self::$INVALID_PARAMS,
                     $request->id);
         }
 
         try {
             $result = $method->invokeArgs($this->RPCObject, $params);
         } catch (ReflectionException $e) {
-            return $notification ? null : $this->getErrorResponseObject(self::INTERNAL_ERROR,
+            return $notification ? null : $this->getErrorResponseObject(self::$INTERNAL_ERROR,
                     $request->id);
         }
 
@@ -176,7 +177,7 @@ class SimpleJSONRPCServer
     private function processBatch($batch)
     {
         if (count($batch) == 0) {
-            return $this->getErrorResponseObject(self::INVALID_REQUEST);
+            return $this->getErrorResponseObject(self::$INVALID_REQUEST);
         }
 
         $batchResult = array();
@@ -203,7 +204,7 @@ class SimpleJSONRPCServer
         $request = json_decode($requestJSON);
 
         if (json_last_error() != JSON_ERROR_NONE) {
-            return json_encode($this->getErrorResponseObject(self::PARSE_ERROR));
+            return json_encode($this->getErrorResponseObject(self::$PARSE_ERROR));
         }
 
         if (is_object($request)) {
@@ -220,6 +221,6 @@ class SimpleJSONRPCServer
             return (count($batchResult) > 0) ? json_encode($batchResult) : '';
         }
 
-        return json_encode($this->getErrorResponseObject(self::INVALID_REQUEST));
+        return json_encode($this->getErrorResponseObject(self::$INVALID_REQUEST));
     }
 }
